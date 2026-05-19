@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="UCC Hospital Booking Platform — Book appointments, manage schedules, and access medical records at the University of Cape Coast Hospital.">
+    <title>UCC Hospital Booking Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <!-- Top Navigation -->
+    <nav id="navbar" class="navbar hidden">
+        <div class="nav-brand">
+            <img src="/images/ucc-logo.png" alt="UCC Logo" style="width:36px;height:36px;object-fit:contain;">
+            <span class="nav-title">UCC Hospital</span>
+        </div>
+        <div class="nav-links" id="nav-links"></div>
+        <div class="nav-right">
+            <div class="notification-bell" id="notification-bell" title="Notifications">
+                <span class="bell-icon"><i data-lucide="bell" style="width:20px;height:20px;"></i></span>
+                <span class="notification-badge hidden" id="notification-badge">0</span>
+            </div>
+            <button class="btn-theme-toggle" id="btn-theme-toggle" title="Toggle Light/Dark Mode">
+                <i data-lucide="sun" style="width:18px;height:18px;"></i>
+            </button>
+            <div class="user-menu" id="user-menu" onclick="ProfilePanel.toggle()">
+                <span id="user-name"></span>
+                <span class="user-role-badge" id="user-role-badge"></span>
+            </div>
+            <button class="btn-logout" id="btn-logout" title="Logout"><i data-lucide="log-out" style="width:18px;height:18px;"></i></button>
+        </div>
+    </nav>
+
+    <!-- Notification Panel -->
+    <div class="notification-panel hidden" id="notification-panel">
+        <div class="notif-header">
+            <h3>Notifications</h3>
+            <button class="btn-link" id="mark-all-read">Mark all read</button>
+        </div>
+        <div class="notif-list" id="notif-list"></div>
+    </div>
+
+    <!-- Profile Slide Panel -->
+    <div class="profile-backdrop hidden" id="profile-backdrop" onclick="ProfilePanel.close()"></div>
+    <div class="profile-panel hidden" id="profile-panel">
+        <div class="profile-panel-header">
+            <h2>My Profile</h2>
+            <button class="profile-panel-close" onclick="ProfilePanel.close()">✕</button>
+        </div>
+        <div class="profile-panel-body"></div>
+    </div>
+
+    <!-- Main App Container -->
+    <main id="app" class="app-container"></main>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="/js/app.js"></script>
+    <script src="/js/pages/login.js"></script>
+    <script src="/js/pages/register.js"></script>
+    <script src="/js/pages/forgot-password.js"></script>
+    <script src="/js/pages/patient-dashboard.js"></script>
+    <script src="/js/pages/book-appointment.js"></script>
+    <script src="/js/pages/doctor-dashboard.js"></script>
+    <script src="/js/pages/admin-dashboard.js"></script>
+    <script src="/js/pages/profile-panel.js"></script>
+    <script>document.addEventListener('DOMContentLoaded', () => lucide.createIcons());</script>
+</body>
+</html>
