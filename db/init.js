@@ -24,7 +24,7 @@ async function initializeDatabase() {
         const passwordHash = await bcrypt.hash('admin123', 10);
         await runStmt(db,
             'INSERT INTO users (id, name, email, password_hash, role, phone) VALUES (?, ?, ?, ?, ?, ?)',
-            [adminId, 'System Admin', 'admin@gmail.com', passwordHash, 'admin', '+233 24 033 0967']
+            [adminId, 'System Admin', 'admin@gmail.com', passwordHash, 'admin', '0530000000']
         );
         console.log('Default admin seeded: admin@gmail.com / admin123');
     }
