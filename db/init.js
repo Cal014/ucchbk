@@ -18,15 +18,15 @@ async function initializeDatabase() {
     }
 
     // Seed default admin if not present
-    const existingAdmin = await getOne(db, 'SELECT id FROM users WHERE email = ?', ['admin@hospital.com']);
+    const existingAdmin = await getOne(db, 'SELECT id FROM users WHERE email = ?', ['admin@gmail.com']);
     if (!existingAdmin) {
         const adminId = uuidv4();
         const passwordHash = await bcrypt.hash('admin123', 10);
         await runStmt(db,
             'INSERT INTO users (id, name, email, password_hash, role, phone) VALUES (?, ?, ?, ?, ?, ?)',
-            [adminId, 'System Admin', 'admin@hospital.com', passwordHash, 'admin', '+1-000-000-0000']
+            [adminId, 'System Admin', 'admin@gmail.com', passwordHash, 'admin', '+233 24 033 0967']
         );
-        console.log('Default admin seeded: admin@hospital.com / admin123');
+        console.log('Default admin seeded: admin@gmail.com / admin123');
     }
 
 
