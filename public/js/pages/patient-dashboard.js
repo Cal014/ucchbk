@@ -12,7 +12,7 @@ const PatientDashboard = {
                         <p>View and manage your upcoming appointments</p>
                     </div>
                     <button class="btn btn-primary" onclick="App.navigate('book-appointment')">
-                        + Book Appointment
+                        Book Appointment
                     </button>
                 </div>
             </div>
