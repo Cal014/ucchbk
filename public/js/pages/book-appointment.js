@@ -182,12 +182,33 @@ const BookAppointment = {
         dateInput.min = today;
         dateInput.addEventListener('change', () => this.onDateChange(dateInput.value));
 
-        // Card number formatting
+        // Card brand detection utility
+        const detectCardBrand = (cardNumber) => {
+            const cleanNumber = cardNumber.replace(/\D/g, '');
+            if (/^4/.test(cleanNumber)) return 'Visa';
+            if (/^(5[1-5]|222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[0-1][0-9]|2720)/.test(cleanNumber)) return 'Mastercard';
+            return 'Unknown';
+        };
+
+        // Card number formatting and auto-selection
         const cardInput = document.getElementById('card-number');
         cardInput.addEventListener('input', (e) => {
             let v = e.target.value.replace(/\s/g, '').replace(/\D/g, '');
-            v = v.match(/.{1,4}/g)?.join(' ') || v;
-            e.target.value = v;
+            let formattedValue = v.match(/.{1,4}/g)?.join(' ') || v;
+            e.target.value = formattedValue;
+
+            const brand = detectCardBrand(v);
+            const pmNameElement = document.querySelector('.payment-method-card[data-method="card"] .pm-name');
+
+            if (pmNameElement) {
+                if (brand === 'Visa') {
+                    pmNameElement.innerText = 'Visa';
+                } else if (brand === 'Mastercard') {
+                    pmNameElement.innerText = 'Mastercard';
+                } else {
+                    pmNameElement.innerText = 'Visa / Mastercard';
+                }
+            }
         });
 
         // Expiry formatting
