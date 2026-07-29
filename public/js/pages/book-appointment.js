@@ -65,21 +65,21 @@ const BookAppointment = {
                     <div class="section-title">Select Payment Method</div>
                     <div class="payment-methods" id="payment-methods">
                         <div class="payment-method-card" data-method="mtn_momo" onclick="BookAppointment.selectPaymentMethod('mtn_momo', this)">
-                            <div class="pm-icon" style="background:#FFCC00;color:#000;">MTN</div>
+                            <img src="/images/mtn.png" class="pm-icon" alt="MTN" style="object-fit:contain;background:#ffffff;padding:4px;border:1px solid var(--border);">
                             <div class="pm-info">
                                 <div class="pm-name">MTN Mobile Money</div>
                                 <div class="pm-desc">Pay with your MoMo wallet</div>
                             </div>
                         </div>
                         <div class="payment-method-card" data-method="telecel_cash" onclick="BookAppointment.selectPaymentMethod('telecel_cash', this)">
-                            <div class="pm-icon" style="background:#E60000;color:#fff;">TC</div>
+                            <img src="/images/telecel.png" class="pm-icon" alt="Telecel" style="object-fit:contain;background:#ffffff;padding:4px;border:1px solid var(--border);">
                             <div class="pm-info">
                                 <div class="pm-name">Telecel Cash</div>
                                 <div class="pm-desc">Pay with Telecel Cash</div>
                             </div>
                         </div>
                         <div class="payment-method-card" data-method="airteltigo_money" onclick="BookAppointment.selectPaymentMethod('airteltigo_money', this)">
-                            <div class="pm-icon" style="background:#0066B3;color:#fff;">AT</div>
+                            <img src="/images/at.png" class="pm-icon" alt="AT" style="object-fit:contain;background:#ffffff;padding:4px;border:1px solid var(--border);">
                             <div class="pm-info">
                                 <div class="pm-name">AirtelTigo Money</div>
                                 <div class="pm-desc">Pay with AirtelTigo</div>

@@ -76,7 +76,7 @@ router.post('/', authenticate, authorize('patient'), async (req, res) => {
             appointment: { id: appointmentId, doctor: doctor.doctor_name, date, time_slot, status: 'scheduled' }
         });
     } catch (err) {
-        if (err.message === 'SLOT_TAKEN') {
+        if (err.message === 'SLOT_TAKEN' || (err.code === '23505' && err.constraint === 'idx_unique_active_slot')) {
             return res.status(409).json({ error: 'This time slot is already booked. Please choose another.' });
         }
         if (err.message === 'PATIENT_CONFLICT') {
@@ -200,7 +200,7 @@ router.put('/:id', authenticate, authorize('patient', 'admin'), async (req, res)
 
         res.json({ message: 'Appointment rescheduled', date, time_slot });
     } catch (err) {
-        if (err.message === 'SLOT_TAKEN') {
+        if (err.message === 'SLOT_TAKEN' || (err.code === '23505' && err.constraint === 'idx_unique_active_slot')) {
             return res.status(409).json({ error: 'New time slot is already booked' });
         }
         console.error('Reschedule error:', err);

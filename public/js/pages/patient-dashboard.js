@@ -17,6 +17,8 @@ const PatientDashboard = {
                 </div>
             </div>
 
+            <div id="live-queue-widget"></div>
+
             <div class="stats-grid" id="patient-stats"></div>
 
             <div class="card">
@@ -90,31 +92,125 @@ const PatientDashboard = {
     },
 
     appointments: [],
-
     payments: [],
-
     medicalRecords: [],
+    activeQueue: null,
+    eventSource: null,
 
     async init() {
         try {
-            const [appointments, payments, medicalRecords] = await Promise.all([
+            const [appointments, payments, medicalRecords, activeQueue] = await Promise.all([
                 App.api('/appointments'),
                 App.api('/payments').catch(() => []),
-                App.api('/medical-records').catch(() => [])
+                App.api('/medical-records').catch(() => []),
+                App.api('/queue/patient/active').catch(() => null)
             ]);
             this.appointments = appointments || [];
             this.payments = payments || [];
             this.medicalRecords = medicalRecords || [];
+            this.activeQueue = activeQueue;
+
+            this.renderQueueWidget();
             this.renderStats();
             this.renderTable();
             this.renderPayments();
             this.renderMedicalRecords();
             this.bindFilters();
+            this.startSSE();
         } catch (err) {
             document.getElementById('appointments-table').innerHTML =
                 '<div class="empty-state"><div class="empty-icon"><i data-lucide="alert-triangle" style="width:40px;height:40px;color:var(--warning);"></i></div><h3>Error loading appointments</h3></div>';
             App.refreshIcons();
         }
+    },
+
+    renderQueueWidget() {
+        const container = document.getElementById('live-queue-widget');
+
+        // Find if they have an appointment today
+        const today = new Date().toISOString().split('T')[0];
+        const todayAppt = this.appointments.find(a => a.date === today && (a.status === 'scheduled' || a.status === 'rescheduled'));
+
+        if (this.activeQueue) {
+            const q = this.activeQueue;
+            let statusColor = q.status === 'called' ? 'var(--success)' : 'var(--accent)';
+            let statusText = q.status === 'called' ? 'PLEASE PROCEED TO DOCTOR' : (q.status === 'in_consultation' ? 'IN CONSULTATION' : 'WAITING');
+
+            if (q.status === 'called') {
+                App.showToast('Your ticket has been called!', 'success');
+                // Play sound if possible
+                try { new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU').play(); } catch (e) { }
+            }
+
+            container.innerHTML = `
+                <div class="card" style="border: 2px solid ${statusColor}; background: linear-gradient(145deg, #fff, #f8faff);">
+                    <div class="card-body" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <h2 style="color:${statusColor}; margin-bottom:8px;">${statusText}</h2>
+                            <div style="font-size:32px; font-weight:800; color:var(--text-dark);">${q.ticket_code}</div>
+                            <p style="color:var(--text-muted); margin-top:8px;">Dr. ${q.doctor_name}</p>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-size:14px; color:var(--text-muted);">Currently Serving</div>
+                            <div style="font-size:24px; font-weight:700;">${q.currentlyServing || 'None'}</div>
+                            <div style="font-size:14px; color:var(--text-muted); margin-top:8px;">People Ahead</div>
+                            <div style="font-size:18px; font-weight:600;">${q.peopleAhead}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else if (todayAppt) {
+            container.innerHTML = `
+                <div class="card" style="border: 2px dashed var(--accent);">
+                    <div class="card-body" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <h2 style="margin-bottom:8px;">You have an appointment today</h2>
+                            <p style="color:var(--text-muted);">Please check in to get your queue ticket.</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="PatientDashboard.checkIn()">Check In Now</button>
+                    </div>
+                </div>
+            `;
+        } else {
+            container.innerHTML = '';
+        }
+    },
+
+    async checkIn() {
+        try {
+            const res = await App.api('/queue/check-in', 'POST');
+            App.showToast(res.message, 'success');
+            await this.init(); // Reload dashboard
+        } catch (err) {
+            App.showToast(err.message, 'error');
+        }
+    },
+
+    startSSE() {
+        if (this.eventSource) return;
+        this.eventSource = new EventSource('/api/queue/stream');
+
+        this.eventSource.onmessage = (e) => {
+            try {
+                const data = JSON.parse(e.data);
+                if (data.type === 'queue_update') {
+                    // Re-fetch active queue quietly
+                    App.api('/queue/patient/active').then(q => {
+                        this.activeQueue = q;
+                        this.renderQueueWidget();
+                    });
+                }
+            } catch (err) {
+                console.error('SSE parsing error', err);
+            }
+        };
+
+        this.eventSource.onerror = () => {
+            this.eventSource.close();
+            this.eventSource = null;
+            // Attempt reconnect after 10s
+            setTimeout(() => this.startSSE(), 10000);
+        };
     },
 
     renderStats() {

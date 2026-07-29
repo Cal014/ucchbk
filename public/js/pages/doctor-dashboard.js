@@ -25,6 +25,18 @@ const DoctorDashboard = {
                 </div>
             </div>
 
+            <!-- Today's Queue -->
+            <div class="card" id="queue-card">
+                <div class="card-header" style="background:var(--accent); color:white;">
+                    <h2 style="color:white;">Today's Live Queue</h2>
+                </div>
+                <div class="card-body no-padding">
+                    <div class="table-wrap" id="doctor-queue-table">
+                        ${App.loading()}
+                    </div>
+                </div>
+            </div>
+
             <!-- Upcoming Appointments -->
             <div class="card">
                 <div class="card-header">
@@ -112,20 +124,105 @@ const DoctorDashboard = {
     },
 
     appointments: [],
+    queue: [],
+    eventSource: null,
 
     async init() {
         try {
-            const [appointments, availability] = await Promise.all([
+            const [appointments, availability, queue] = await Promise.all([
                 App.api('/appointments'),
-                App.api('/doctors/availability/me')
+                App.api('/doctors/availability/me'),
+                App.api('/queue/doctor/active').catch(() => [])
             ]);
 
             this.appointments = appointments || [];
+            this.queue = queue || [];
             this.renderStats();
             this.renderAvailability(availability || []);
+            this.renderQueue();
             this.renderTable('scheduled');
             this.bindFilters();
+            this.startSSE();
         } catch (e) { /* handled by api */ }
+    },
+
+    startSSE() {
+        if (this.eventSource) return;
+        this.eventSource = new EventSource('/api/queue/stream');
+        
+        this.eventSource.onmessage = (e) => {
+            try {
+                const data = JSON.parse(e.data);
+                if (data.type === 'queue_update') {
+                    App.api('/queue/doctor/active').then(q => {
+                        this.queue = q || [];
+                        this.renderQueue();
+                    });
+                }
+            } catch (err) {
+                console.error('SSE parsing error', err);
+            }
+        };
+        
+        this.eventSource.onerror = () => {
+            this.eventSource.close();
+            this.eventSource = null;
+            setTimeout(() => this.startSSE(), 10000);
+        };
+    },
+
+    renderQueue() {
+        const container = document.getElementById('doctor-queue-table');
+        if (this.queue.length === 0) {
+            container.innerHTML = '<div class="empty-state"><h3>No patients in queue</h3><p>Patients will appear here when they check in.</p></div>';
+            return;
+        }
+
+        container.innerHTML = `
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Ticket</th>
+                        <th>Time Slot</th>
+                        <th>Patient</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${this.queue.map(q => `
+                        <tr style="background: ${q.status === 'called' || q.status === 'in_consultation' ? '#f0f9ff' : 'transparent'}">
+                            <td style="font-weight:bold; font-size:16px;">${q.ticket_code}</td>
+                            <td>${q.time_slot || 'Walk-in'}</td>
+                            <td>${App.escapeHtml(q.patient_name)}</td>
+                            <td><span class="status-badge ${q.status}">${q.status.replace('_', ' ')}</span></td>
+                            <td>
+                                ${q.status === 'checked_in' ? `<button class="btn btn-primary btn-sm" onclick="DoctorDashboard.updateQueueStatus('${q.id}', 'called')">Call Next</button>` : ''}
+                                ${q.status === 'called' ? `<button class="btn btn-warning btn-sm" onclick="DoctorDashboard.updateQueueStatus('${q.id}', 'in_consultation')">Start</button>` : ''}
+                                ${q.status === 'in_consultation' ? `<button class="btn btn-success btn-sm" onclick="DoctorDashboard.updateQueueStatus('${q.id}', 'completed')">Complete</button>` : ''}
+                                ${q.status !== 'in_consultation' ? `<button class="btn btn-danger btn-sm" onclick="DoctorDashboard.updateQueueStatus('${q.id}', 'no_show')">No-Show</button>` : ''}
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+    },
+
+    async updateQueueStatus(queueId, status) {
+        try {
+            const res = await App.api(`/queue/${queueId}/status`, 'PUT', { status });
+            App.showToast(res.message, 'success');
+
+            // If they completed the consultation, open the medical records prompt
+            if (status === 'completed' && res.appointmentId) {
+                this.openNotesModal(res.appointmentId);
+            } else {
+                this.init();
+            }
+        } catch (e) {
+            App.showToast(e.message, 'error');
+        }
     },
 
     renderStats() {

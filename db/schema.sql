@@ -108,3 +108,28 @@ CREATE INDEX IF NOT EXISTS idx_payments_appointment    ON payments(appointment_i
 CREATE INDEX IF NOT EXISTS idx_payments_patient        ON payments(patient_id);
 CREATE INDEX IF NOT EXISTS idx_notifications_user      ON notifications(user_id);
 CREATE INDEX IF NOT EXISTS idx_doctor_avail_doctor     ON doctor_availability(doctor_id);
+
+-- Partial unique index to prevent double-booking of active slots
+CREATE UNIQUE INDEX IF NOT EXISTS idx_unique_active_slot 
+ON appointments (doctor_id, date, time_slot) 
+WHERE status IN ('scheduled', 'rescheduled');
+
+-- Patient Queues for daily check-in
+CREATE TABLE IF NOT EXISTS patient_queues (
+    id             TEXT PRIMARY KEY,
+    appointment_id TEXT UNIQUE REFERENCES appointments(id) ON DELETE CASCADE,
+    doctor_id      TEXT NOT NULL REFERENCES doctors(id) ON DELETE CASCADE,
+    patient_id     TEXT NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
+    queue_date     TEXT NOT NULL,
+    ticket_number  INTEGER NOT NULL,
+    ticket_code    TEXT NOT NULL,
+    status         TEXT NOT NULL DEFAULT 'checked_in'
+                   CHECK (status IN ('checked_in', 'called', 'in_consultation', 'completed', 'no_show', 'cancelled')),
+    check_in_time  TIMESTAMPTZ DEFAULT NOW(),
+    called_at      TIMESTAMPTZ,
+    completed_at   TIMESTAMPTZ
+);
+
+-- Ensures unique ticket numbers per doctor per day
+CREATE UNIQUE INDEX IF NOT EXISTS idx_daily_doctor_ticket 
+ON patient_queues (doctor_id, queue_date, ticket_number);
