@@ -77,7 +77,7 @@ router.post('/', authenticate, authorize('patient'), async (req, res) => {
         });
     } catch (err) {
         if (err.message === 'SLOT_TAKEN' || (err.code === '23505' && err.constraint === 'idx_unique_active_slot')) {
-            return res.status(409).json({ error: 'This time slot is already booked. Please choose another.' });
+            return res.status(409).json({ error: 'This time slot is already booked. Please choose another.', code: 'DOUBLE_BOOKING' });
         }
         if (err.message === 'PATIENT_CONFLICT') {
             return res.status(409).json({ error: 'You already have an appointment at this time.' });
@@ -201,7 +201,7 @@ router.put('/:id', authenticate, authorize('patient', 'admin'), async (req, res)
         res.json({ message: 'Appointment rescheduled', date, time_slot });
     } catch (err) {
         if (err.message === 'SLOT_TAKEN' || (err.code === '23505' && err.constraint === 'idx_unique_active_slot')) {
-            return res.status(409).json({ error: 'New time slot is already booked' });
+            return res.status(409).json({ error: 'New time slot is already booked', code: 'DOUBLE_BOOKING' });
         }
         console.error('Reschedule error:', err);
         res.status(500).json({ error: 'Failed to reschedule appointment' });

@@ -421,6 +421,13 @@ const BookAppointment = {
             }
             btn.disabled = false;
             btn.innerHTML = 'Pay & Confirm Appointment';
+
+            if (e.code === 'DOUBLE_BOOKING') {
+                // Return to slot selection
+                this.goToStep(3);
+                // Refresh slots
+                document.getElementById('slot-date').dispatchEvent(new Event('change'));
+            }
         }
     },
 
