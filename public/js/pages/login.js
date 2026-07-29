@@ -11,7 +11,7 @@ const LoginPage = {
                         <div style="position:absolute;inset:-12px;border-radius:50%;background:radial-gradient(circle,rgba(212,168,67,0.15),transparent 70%);"></div>
                         <img src="/images/ucc-logo.png" alt="UCC Logo" style="width:88px;height:88px;object-fit:contain;position:relative;">
                     </div>
-                    <h1>UCC Hospital</h1>
+                    <h1>Group 25</h1>
                     <p>Booking Platform</p>
                 </div>
                 <form id="login-form">
