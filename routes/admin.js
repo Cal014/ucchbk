@@ -1,4 +1,6 @@
 const express = require('express');
+const bcrypt = require('bcryptjs');
+const { v4: uuidv4 } = require('uuid');
 const { getDb, runStmt, getOne, getAll, saveDb, withTransaction } = require('../db/database');
 const { authenticate, authorize } = require('../middleware/auth');
 
@@ -149,6 +151,54 @@ router.get('/export', authenticate, authorize('admin'), async (req, res) => {
     } catch (err) {
         console.error('Export error:', err);
         res.status(500).json({ error: 'Failed to export data' });
+    }
+});
+
+// POST /api/admin/doctors — Admin-only doctor account creation
+router.post('/doctors', authenticate, authorize('admin'), async (req, res) => {
+    try {
+        const { name, email, password, specialization, consultation_fee, phone, bio } = req.body;
+
+        if (!name || !email || !password || !specialization) {
+            return res.status(400).json({ error: 'Name, email, password, and specialization are required' });
+        }
+        if (password.length < 8) {
+            return res.status(400).json({ error: 'Password must be at least 8 characters' });
+        }
+
+        const db = await getDb();
+        const existing = await getOne(db, 'SELECT id FROM users WHERE email = ?', [email]);
+        if (existing) {
+            return res.status(409).json({ error: 'Email already registered' });
+        }
+
+        const passwordHash = await bcrypt.hash(password, 10);
+
+        await withTransaction(db, async (client) => {
+            const userId = uuidv4();
+            const doctorId = uuidv4();
+
+            await runStmt(client,
+                'INSERT INTO users (id, name, email, password_hash, role, phone) VALUES (?, ?, ?, ?, ?, ?)',
+                [userId, name, email, passwordHash, 'doctor', phone || null]
+            );
+
+            await runStmt(client,
+                'INSERT INTO doctors (id, user_id, specialization, bio, consultation_fee) VALUES (?, ?, ?, ?, ?)',
+                [doctorId, userId, specialization, bio || '', parseFloat(consultation_fee) || 0]
+            );
+
+            await runStmt(client,
+                'INSERT INTO notifications (id, user_id, message, type) VALUES (?, ?, ?, ?)',
+                [uuidv4(), userId, `Welcome Dr. ${name}! Your verified doctor account has been created by the administrator.`, 'success']
+            );
+        });
+
+        saveDb();
+        res.status(201).json({ message: `Doctor account for ${name} created successfully.` });
+    } catch (err) {
+        console.error('Admin create doctor error:', err);
+        res.status(500).json({ error: 'Failed to create doctor account' });
     }
 });
 

@@ -11,9 +11,14 @@ const AdminDashboard = {
                         <h1>Admin Dashboard</h1>
                         <p>System overview and management</p>
                     </div>
-                    <button class="btn btn-secondary" onclick="AdminDashboard.exportData()">
-                        <i data-lucide="download" style="width:16px;height:16px;"></i> Export CSV
-                    </button>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn btn-primary" onclick="AdminDashboard.showAddDoctorModal()">
+                            <i data-lucide="user-plus" style="width:16px;height:16px;"></i> Add Doctor
+                        </button>
+                        <button class="btn btn-secondary" onclick="AdminDashboard.exportData()">
+                            <i data-lucide="download" style="width:16px;height:16px;"></i> Export CSV
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -56,6 +61,63 @@ const AdminDashboard = {
                 </div>
                 <div class="card-body">
                     <div class="stats-grid" id="revenue-stats">${App.loading()}</div>
+                </div>
+            </div>
+            <!-- Add Doctor Modal -->
+            <div id="add-doctor-modal" class="hidden" style="position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);">
+                <div class="auth-card" style="max-width:500px;width:90%;max-height:90vh;overflow-y:auto;margin:0;animation:fadeIn 0.2s ease;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                        <h2 style="margin:0;color:var(--text-primary);">Add Verified Doctor</h2>
+                        <button class="btn btn-secondary btn-sm" onclick="AdminDashboard.hideAddDoctorModal()" style="padding:6px 10px;">✕</button>
+                    </div>
+                    <form id="add-doctor-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="doc-name">Full Name *</label>
+                                <input type="text" id="doc-name" placeholder="Dr. Kofi Mensah" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="doc-email">Email *</label>
+                                <input type="email" id="doc-email" placeholder="doctor@ucc.edu.gh" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="doc-password">Password *</label>
+                                <input type="password" id="doc-password" placeholder="Min 8 characters" required minlength="8">
+                            </div>
+                            <div class="form-group">
+                                <label for="doc-phone">Phone</label>
+                                <input type="tel" id="doc-phone" placeholder="+233-000000000">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="doc-spec">Specialization *</label>
+                                <select id="doc-spec" required>
+                                    <option value="General Medicine">General Medicine</option>
+                                    <option value="Cardiology">Cardiology</option>
+                                    <option value="Dermatology">Dermatology</option>
+                                    <option value="Neurology">Neurology</option>
+                                    <option value="Orthopedics">Orthopedics</option>
+                                    <option value="Pediatrics">Pediatrics</option>
+                                    <option value="Psychiatry">Psychiatry</option>
+                                    <option value="Surgery">Surgery</option>
+                                    <option value="ENT">ENT</option>
+                                    <option value="Ophthalmology">Ophthalmology</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="doc-fee">Consultation Fee (GHS)</label>
+                                <input type="number" id="doc-fee" placeholder="0.00" min="0" step="0.01">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="doc-bio">Bio</label>
+                            <textarea id="doc-bio" placeholder="Brief professional description..." rows="3"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block" id="doc-submit-btn">Create Doctor Account</button>
+                    </form>
                 </div>
             </div>
         </div>`;
@@ -285,5 +347,68 @@ const AdminDashboard = {
         } catch (e) {
             App.toast('Export failed', 'error');
         }
+    },
+
+    showAddDoctorModal() {
+        const modal = document.getElementById('add-doctor-modal');
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+
+        // Close on backdrop click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) AdminDashboard.hideAddDoctorModal();
+        });
+
+        // Bind form submit
+        const form = document.getElementById('add-doctor-form');
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('doc-submit-btn');
+            const body = {
+                name: document.getElementById('doc-name').value.trim(),
+                email: document.getElementById('doc-email').value.trim(),
+                password: document.getElementById('doc-password').value,
+                phone: document.getElementById('doc-phone').value.trim(),
+                specialization: document.getElementById('doc-spec').value,
+                consultation_fee: document.getElementById('doc-fee').value || '0',
+                bio: document.getElementById('doc-bio').value.trim()
+            };
+
+            if (!body.name || !body.email || !body.password || !body.specialization) {
+                App.toast('Please fill in all required fields', 'warning');
+                return;
+            }
+            if (body.password.length < 8) {
+                App.toast('Password must be at least 8 characters', 'warning');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Creating...';
+
+            try {
+                await App.api('/admin/doctors', {
+                    method: 'POST',
+                    body: JSON.stringify(body)
+                });
+                App.toast(`Doctor account for ${body.name} created successfully!`, 'success');
+                AdminDashboard.hideAddDoctorModal();
+                await AdminDashboard.init(); // Refresh dashboard
+            } catch (err) {
+                btn.disabled = false;
+                btn.textContent = 'Create Doctor Account';
+            }
+        };
+    },
+
+    hideAddDoctorModal() {
+        const modal = document.getElementById('add-doctor-modal');
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+        // Reset form
+        const form = document.getElementById('add-doctor-form');
+        if (form) form.reset();
+        const btn = document.getElementById('doc-submit-btn');
+        if (btn) { btn.disabled = false; btn.textContent = 'Create Doctor Account'; }
     }
 };

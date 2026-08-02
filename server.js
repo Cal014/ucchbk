@@ -2,15 +2,37 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const { initializeDatabase } = require('./db/init');
 const { closeDb } = require('./db/database');
+const { validateEnv } = require('./config/env');
+const { sanitizeInput } = require('./middleware/sanitize');
 
 const app = express();
 
-// Middleware
+// Validate environment variables on boot
+validateEnv();
+
+// Security middleware
+app.use(helmet({ contentSecurityPolicy: false })); // CSP disabled — SPA serves inline scripts
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(sanitizeInput);
+
+// Rate limiting for auth endpoints
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10,
+    message: { error: 'Too many attempts. Please try again in 15 minutes.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/forgot-password', authLimiter);
+app.use('/api/auth/verify-otp', authLimiter);
+app.use('/api/auth/confirm-reset', authLimiter);
 
 // Serve static frontend
 app.use(express.static(path.join(__dirname, 'public')));

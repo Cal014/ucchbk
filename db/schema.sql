@@ -15,6 +15,9 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at  TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Session invalidation: increment on password change to revoke old JWTs
+ALTER TABLE users ADD COLUMN IF NOT EXISTS token_version INTEGER DEFAULT 1;
+
 -- Doctors table (extends users with role = 'doctor')
 CREATE TABLE IF NOT EXISTS doctors (
     id                TEXT PRIMARY KEY,
@@ -133,3 +136,15 @@ CREATE TABLE IF NOT EXISTS patient_queues (
 -- Ensures unique ticket numbers per doctor per day
 CREATE UNIQUE INDEX IF NOT EXISTS idx_daily_doctor_ticket 
 ON patient_queues (doctor_id, queue_date, ticket_number);
+
+-- Password reset OTP codes
+CREATE TABLE IF NOT EXISTS password_resets (
+    id          TEXT PRIMARY KEY,
+    user_id     TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    otp_code    TEXT NOT NULL,
+    expires_at  TIMESTAMPTZ NOT NULL,
+    used        BOOLEAN DEFAULT FALSE,
+    created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_password_resets_user ON password_resets(user_id);

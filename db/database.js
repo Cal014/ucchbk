@@ -9,8 +9,11 @@ const pool = new Pool({
     connectionTimeoutMillis: 5000,
 });
 
-pool.on('error', (err) => {
+pool.on('error', (err, client) => {
     console.error('Unexpected database pool error:', err);
+    if (err.code === 'ECONNRESET' || err.code === 'EPIPE') {
+        console.log('Database connection lost. Pool will reconnect on next query.');
+    }
 });
 
 // --- Placeholder Converter ---

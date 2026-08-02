@@ -178,7 +178,7 @@ const PatientDashboard = {
 
     async checkIn() {
         try {
-            const res = await App.api('/queue/check-in', 'POST');
+            const res = await App.api('/queue/check-in', { method: 'POST' });
             App.showToast(res.message, 'success');
             await this.init(); // Reload dashboard
         } catch (err) {
