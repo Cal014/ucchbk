@@ -137,24 +137,24 @@ const PatientDashboard = {
             let statusText = q.status === 'called' ? 'PLEASE PROCEED TO DOCTOR' : (q.status === 'in_consultation' ? 'IN CONSULTATION' : 'WAITING');
 
             if (q.status === 'called') {
-                App.showToast('Your ticket has been called!', 'success');
+                App.toast('Your ticket has been called!', 'success');
                 // Play sound if possible
                 try { new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU').play(); } catch (e) { }
             }
 
             container.innerHTML = `
-                <div class="card" style="border: 2px solid ${statusColor}; background: linear-gradient(145deg, #fff, #f8faff);">
+                <div class="card" style="border: 2px solid ${statusColor}; background: linear-gradient(145deg, #fff, #f8faff); color: #000;">
                     <div class="card-body" style="display:flex; justify-content:space-between; align-items:center;">
                         <div>
                             <h2 style="color:${statusColor}; margin-bottom:8px;">${statusText}</h2>
-                            <div style="font-size:32px; font-weight:800; color:var(--text-dark);">${q.ticket_code}</div>
-                            <p style="color:var(--text-muted); margin-top:8px;">Dr. ${q.doctor_name}</p>
+                            <div style="font-size:32px; font-weight:800; color:#000;">${q.ticket_code}</div>
+                            <p style="color:#000; margin-top:8px;">Dr. ${q.doctor_name}</p>
                         </div>
                         <div style="text-align:right;">
-                            <div style="font-size:14px; color:var(--text-muted);">Currently Serving</div>
-                            <div style="font-size:24px; font-weight:700;">${q.currentlyServing || 'None'}</div>
-                            <div style="font-size:14px; color:var(--text-muted); margin-top:8px;">People Ahead</div>
-                            <div style="font-size:18px; font-weight:600;">${q.peopleAhead}</div>
+                            <div style="font-size:14px; color:#000;">Currently Serving</div>
+                            <div style="font-size:24px; font-weight:700; color:#000;">${q.currentlyServing || 'None'}</div>
+                            <div style="font-size:14px; color:#000; margin-top:8px;">People Ahead</div>
+                            <div style="font-size:18px; font-weight:600; color:#000;">${q.peopleAhead}</div>
                         </div>
                     </div>
                 </div>
@@ -179,10 +179,10 @@ const PatientDashboard = {
     async checkIn() {
         try {
             const res = await App.api('/queue/check-in', { method: 'POST' });
-            App.showToast(res.message, 'success');
+            App.toast(res.message, 'success');
             await this.init(); // Reload dashboard
         } catch (err) {
-            App.showToast(err.message, 'error');
+            App.toast(err.message, 'error');
         }
     },
 

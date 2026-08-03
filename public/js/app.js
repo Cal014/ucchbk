@@ -31,9 +31,15 @@ const App = {
 
         try {
             const res = await fetch(url, { ...options, headers });
-            if (res.status === 401) {
+            if (res.status === 401 && this.token) {
                 this.logout();
                 return null;
+            }
+            if (res.status === 429) {
+                const data = await res.json().catch(() => ({}));
+                const err = new Error(data.error || 'Too many attempts. Please try again later.');
+                err.code = 'RATE_LIMITED';
+                throw err;
             }
             const contentType = res.headers.get('content-type');
             if (contentType && contentType.includes('text/csv')) {

@@ -98,7 +98,7 @@ const BookAppointment = {
                     <div id="momo-form" class="payment-form hidden mt-16">
                         <div class="form-group">
                             <label for="momo-phone">Mobile Money Number</label>
-                            <input type="tel" id="momo-phone" placeholder="0XX XXX XXXX">
+                            <input type="tel" id="momo-phone" placeholder="0XX XXX XXXX" autocomplete="tel">
                         </div>
                         <p style="color:var(--text-muted);font-size:0.8rem;margin-top:-12px;">
                             You will receive a prompt on your phone to confirm payment.
@@ -109,16 +109,16 @@ const BookAppointment = {
                     <div id="card-form" class="payment-form hidden mt-16">
                         <div class="form-group">
                             <label for="card-number">Card Number</label>
-                            <input type="text" id="card-number" placeholder="1234 5678 9012 3456" maxlength="19">
+                            <input type="text" id="card-number" placeholder="1234 5678 9012 3456" maxlength="19" autocomplete="cc-number">
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="card-expiry">Expiry Date</label>
-                                <input type="text" id="card-expiry" placeholder="MM/YY" maxlength="5">
+                                <input type="text" id="card-expiry" placeholder="MM/YY" maxlength="5" autocomplete="cc-exp">
                             </div>
                             <div class="form-group">
                                 <label for="card-cvv">CVV</label>
-                                <input type="password" id="card-cvv" placeholder="123" maxlength="3">
+                                <input type="password" id="card-cvv" placeholder="123" maxlength="3" autocomplete="cc-csc">
                             </div>
                         </div>
                     </div>

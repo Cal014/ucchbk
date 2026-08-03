@@ -191,7 +191,7 @@ const DoctorDashboard = {
                 </thead>
                 <tbody>
                     ${this.queue.map(q => `
-                        <tr style="background: ${q.status === 'called' || q.status === 'in_consultation' ? '#f0f9ff' : 'transparent'}">
+                        <tr style="background: ${q.status === 'called' || q.status === 'in_consultation' ? '#f0f9ff' : 'transparent'}; color: ${q.status === 'called' || q.status === 'in_consultation' ? '#000' : 'inherit'};">
                             <td style="font-weight:bold; font-size:16px;">${q.ticket_code}</td>
                             <td>${q.time_slot || 'Walk-in'}</td>
                             <td>${App.escapeHtml(q.patient_name)}</td>
@@ -211,17 +211,20 @@ const DoctorDashboard = {
 
     async updateQueueStatus(queueId, status) {
         try {
-            const res = await App.api(`/queue/${queueId}/status`, 'PUT', { status });
-            App.showToast(res.message, 'success');
+            const res = await App.api(`/queue/${queueId}/status`, {
+                method: 'PUT',
+                body: JSON.stringify({ status })
+            });
+            App.toast(res.message, 'success');
 
             // If they completed the consultation, open the medical records prompt
             if (status === 'completed' && res.appointmentId) {
-                this.openNotesModal(res.appointmentId);
+                this.openComplete(res.appointmentId);
             } else {
                 this.init();
             }
         } catch (e) {
-            App.showToast(e.message, 'error');
+            App.toast(e.message, 'error');
         }
     },
 

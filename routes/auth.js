@@ -324,8 +324,13 @@ router.post('/forgot-password', async (req, res) => {
             [uuidv4(), user.id, otpCode]
         );
 
-        // Send email or log to terminal
-        await sendOtpEmail(email, otpCode);
+        // Send email or log to terminal — wrapped in try/catch so
+        // SMTP failures don't crash the endpoint (OTP is already in DB)
+        try {
+            await sendOtpEmail(email, otpCode);
+        } catch (emailErr) {
+            console.error('Email sending failed (OTP saved to DB, check terminal):', emailErr.message);
+        }
 
         saveDb();
         res.json({ message: 'If an account with that email exists, a verification code has been sent.' });

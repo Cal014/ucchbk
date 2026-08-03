@@ -274,21 +274,24 @@ router.patch('/:id/complete', authenticate, authorize('doctor'), async (req, res
             return res.status(403).json({ error: 'You can only complete your own appointments' });
         }
         if (appointment.status === 'cancelled') return res.status(400).json({ error: 'Cannot complete a cancelled appointment' });
-        if (appointment.status === 'completed') return res.status(400).json({ error: 'Appointment is already completed' });
+        
+        const wasCompleted = appointment.status === 'completed';
 
         await runStmt(db,
             "UPDATE appointments SET status = 'completed', notes = COALESCE(?, notes), updated_at = NOW() WHERE id = ?",
             [notes || null, req.params.id]
         );
 
-        const patientUser = await getOne(db,
-            'SELECT u.id as user_id FROM patients p JOIN users u ON p.user_id = u.id WHERE p.id = ?',
-            [appointment.patient_id]
-        );
-        if (patientUser) {
-            await runStmt(db, 'INSERT INTO notifications (id, user_id, message, type) VALUES (?, ?, ?, ?)',
-                [uuidv4(), patientUser.user_id, `Your appointment on ${appointment.date} has been marked as completed`, 'success']
+        if (!wasCompleted) {
+            const patientUser = await getOne(db,
+                'SELECT u.id as user_id FROM patients p JOIN users u ON p.user_id = u.id WHERE p.id = ?',
+                [appointment.patient_id]
             );
+            if (patientUser) {
+                await runStmt(db, 'INSERT INTO notifications (id, user_id, message, type) VALUES (?, ?, ?, ?)',
+                    [uuidv4(), patientUser.user_id, `Your appointment on ${appointment.date} has been marked as completed`, 'success']
+                );
+            }
         }
 
         res.json({ message: 'Appointment completed' });
