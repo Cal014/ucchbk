@@ -381,20 +381,20 @@ const BookAppointment = {
                 App.toast('Wrong or invalid card number', 'warning');
                 return;
             }
-            
+
             if (!expiry || !/^(0[1-9]|1[0-2])\/\d{2}$/.test(expiry)) {
                 App.toast('Please enter a valid expiry date (MM/YY)', 'warning');
                 return;
             }
-            
+
             const [month, year] = expiry.split('/');
             const expiryDate = new Date(`20${year}`, parseInt(month) - 1, 1);
             const currentDate = new Date();
             currentDate.setDate(1);
-            currentDate.setHours(0,0,0,0);
-            
+            currentDate.setHours(0, 0, 0, 0);
+
             if (expiryDate < currentDate) {
-                App.toast('Date entered is not the current or future date', 'warning');
+                App.toast('Card Expired', 'warning');
                 return;
             }
             if (!cvv || !/^\d{3,4}$/.test(cvv)) {
