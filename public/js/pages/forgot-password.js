@@ -93,7 +93,7 @@ const ForgotPasswordPage = {
                 document.getElementById('fp-subtitle').textContent = 'Enter the code sent to your email';
                 document.getElementById('fp-otp').focus();
 
-                App.toast('Verification code sent! Check your email or terminal.', 'success');
+                App.toast('Verification code sent! Check your email', 'success');
             } catch (err) {
                 btn.disabled = false;
                 btn.textContent = 'Send Verification Code';
