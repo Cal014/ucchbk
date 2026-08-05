@@ -5,8 +5,7 @@
 function validateEnv() {
     const required = ['DATABASE_URL', 'JWT_SECRET'];
     const optional = [
-        { key: 'SMTP_USER', hint: 'Gmail address for sending OTP emails (e.g. myapp@gmail.com)' },
-        { key: 'SMTP_PASS', hint: 'Gmail App Password (generate at myaccount.google.com/apppasswords)' },
+        { key: 'BREVO_API_KEY', hint: 'Brevo API key for sending OTP emails (get from brevo.com → Settings → SMTP & API)' },
     ];
 
     const missing = required.filter(key => !process.env[key]);
