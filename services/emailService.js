@@ -17,16 +17,11 @@ function getTransporter() {
 
     if (user && pass) {
         transporter = nodemailer.createTransport({
-            host: 'smtp.gmail.com',
-            port: 587,
-            secure: false, // STARTTLS
+            service: 'gmail',
             auth: { user, pass },
             tls: {
-                rejectUnauthorized: false, // Allow self-signed certs in dev
+                rejectUnauthorized: false,
             },
-            connectionTimeout: 10000, // 10 second connection timeout
-            greetingTimeout: 10000,
-            socketTimeout: 15000,
         });
         console.log('📧 Email service: Gmail SMTP configured');
     } else {
