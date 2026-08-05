@@ -34,8 +34,12 @@ CREATE TABLE IF NOT EXISTS patients (
     date_of_birth   TEXT,
     gender          TEXT,
     blood_group     TEXT,
-    address         TEXT DEFAULT ''
+    address         TEXT DEFAULT '',
+    account_balance NUMERIC(10, 2) DEFAULT 500.00
 );
+
+-- Ensure existing patients get the account_balance column
+ALTER TABLE patients ADD COLUMN IF NOT EXISTS account_balance NUMERIC(10, 2) DEFAULT 500.00;
 
 -- Doctor weekly availability windows
 CREATE TABLE IF NOT EXISTS doctor_availability (

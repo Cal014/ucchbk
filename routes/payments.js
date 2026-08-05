@@ -62,7 +62,7 @@ router.post('/', authenticate, authorize('patient'), async (req, res) => {
                 return res.status(400).json({ error: 'Invalid card number' });
             }
             if (!isValidExpiry(card_expiry)) {
-                return res.status(400).json({ error: 'Invalid or expired card' });
+                return res.status(400).json({ error: 'Card has expired. Expiry date must be in the present or future.' });
             }
             if (!/^\d{3,4}$/.test(card_cvv)) {
                 return res.status(400).json({ error: 'Invalid CVV' });
@@ -71,7 +71,7 @@ router.post('/', authenticate, authorize('patient'), async (req, res) => {
 
         const db = await getDb();
 
-        const patient = await getOne(db, 'SELECT id FROM patients WHERE user_id = ?', [req.user.id]);
+        const patient = await getOne(db, 'SELECT id, account_balance FROM patients WHERE user_id = ?', [req.user.id]);
         if (!patient) return res.status(404).json({ error: 'Patient profile not found' });
 
         const appointment = await getOne(db, 'SELECT * FROM appointments WHERE id = ? AND patient_id = ?', [appointment_id, patient.id]);
@@ -79,6 +79,14 @@ router.post('/', authenticate, authorize('patient'), async (req, res) => {
 
         const doctor = await getOne(db, 'SELECT consultation_fee FROM doctors WHERE id = ?', [appointment.doctor_id]);
         const amount = doctor ? doctor.consultation_fee : 0;
+
+        // Check if patient has sufficient funds
+        const balance = parseFloat(patient.account_balance) || 0;
+        if (balance < amount) {
+            return res.status(400).json({
+                error: `Insufficient funds. Your account balance is GHS ${balance.toFixed(2)} but the consultation fee is GHS ${amount.toFixed(2)}.`
+            });
+        }
 
         const paymentId = uuidv4();
         const transactionRef = generateTransactionRef(payment_method);
@@ -101,6 +109,12 @@ router.post('/', authenticate, authorize('patient'), async (req, res) => {
             await runStmt(client,
                 "UPDATE payments SET status = 'completed' WHERE id = ?",
                 [paymentId]
+            );
+
+            // Deduct the amount from the patient's account balance
+            await runStmt(client,
+                'UPDATE patients SET account_balance = account_balance - ? WHERE id = ?',
+                [amount, patient.id]
             );
         });
 
