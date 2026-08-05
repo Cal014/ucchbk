@@ -17,7 +17,7 @@ async function authenticate(req, res, next) {
             return res.status(401).json({ error: 'User not found' });
         }
         // Session invalidation: reject tokens issued before password change
-        if (decoded.tokenVersion !== undefined && decoded.tokenVersion !== user.token_version) {
+        if (decoded.tokenVersion !== undefined && decoded.tokenVersion !== (user.token_version || 1)) {
             return res.status(401).json({ error: 'Session expired. Please log in again.' });
         }
         req.user = user;
