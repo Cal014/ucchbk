@@ -10,6 +10,7 @@ const { validateEnv } = require('./config/env');
 const { sanitizeInput } = require('./middleware/sanitize');
 
 const app = express();
+app.set('trust proxy', 1); // Trust first proxy (Render)
 
 // Validate environment variables on boot
 validateEnv();
