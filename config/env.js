@@ -5,8 +5,8 @@
 function validateEnv() {
     const required = ['DATABASE_URL', 'JWT_SECRET'];
     const optional = [
-        { key: 'SMTP_USER', hint: 'Google SMTP email address for sending OTP emails' },
-        { key: 'SMTP_PASS', hint: 'Google SMTP App Password for sending OTP emails' },
+        { key: 'SMTP_USER', hint: 'callistusdjidah06@gmail.com' },
+        { key: 'SMTP_PASS', hint: 'kcwjgejvlyfkllsi' },
     ];
 
     const missing = required.filter(key => !process.env[key]);
