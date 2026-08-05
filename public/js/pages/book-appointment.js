@@ -359,8 +359,44 @@ const BookAppointment = {
             const cardNum = document.getElementById('card-number').value.replace(/\s/g, '');
             const expiry = document.getElementById('card-expiry').value;
             const cvv = document.getElementById('card-cvv').value;
-            if (cardNum.length < 13 || !expiry || cvv.length < 3) {
-                App.toast('Please enter valid card details', 'warning');
+
+            const luhnCheck = (cardNumber) => {
+                const digits = cardNumber.replace(/\D/g, '');
+                if (digits.length < 13 || digits.length > 19) return false;
+                let sum = 0;
+                let shouldDouble = false;
+                for (let i = digits.length - 1; i >= 0; i--) {
+                    let digit = parseInt(digits.charAt(i), 10);
+                    if (shouldDouble) {
+                        digit *= 2;
+                        if (digit > 9) digit -= 9;
+                    }
+                    sum += digit;
+                    shouldDouble = !shouldDouble;
+                }
+                return (sum % 10) === 0;
+            };
+
+            const isValidExpiry = (exp) => {
+                if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(exp)) return false;
+                const [month, year] = exp.split('/');
+                const expiryDate = new Date(`20${year}`, parseInt(month) - 1, 1);
+                const currentDate = new Date();
+                currentDate.setDate(1);
+                currentDate.setHours(0,0,0,0);
+                return expiryDate >= currentDate;
+            };
+
+            if (!cardNum || !luhnCheck(cardNum)) {
+                App.toast('Please enter a valid card number', 'warning');
+                return;
+            }
+            if (!expiry || !isValidExpiry(expiry)) {
+                App.toast('Please enter a valid expiry date (MM/YY) in the future', 'warning');
+                return;
+            }
+            if (!cvv || !/^\d{3,4}$/.test(cvv)) {
+                App.toast('Please enter a valid CVV', 'warning');
                 return;
             }
         }
@@ -450,7 +486,7 @@ const BookAppointment = {
         receiptContent.innerHTML = `
             <div class="receipt" id="receipt-printable">
                 <div style="text-align:center;margin-bottom:24px;padding-bottom:16px;border-bottom:2px dashed var(--border);">
-                    <div style="font-size:1.5rem;margin-bottom:4px;">UCC Hospital</div>
+                    <div style="font-size:1.5rem;margin-bottom:4px;">Hospital Appointment System</div>
                     <div style="color:var(--text-muted);font-size:0.85rem;">Payment Receipt</div>
                 </div>
 
@@ -512,7 +548,7 @@ const BookAppointment = {
         const content = document.getElementById('receipt-printable').innerHTML;
         const win = window.open('', '_blank');
         win.document.write(`
-            <html><head><title>Payment Receipt — UCC Hospital</title>
+            <html><head><title>Payment Receipt — Hospital Appointment System</title>
             <style>
                 body { font-family: 'Inter', Arial, sans-serif; padding: 40px; color: #1a1a2e; }
                 .receipt-grid { margin: 20px 0; }

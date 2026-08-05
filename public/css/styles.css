@@ -1,12 +1,12 @@
 
 :root {
-    /* Primary palette — UCC Navy Blue */
+    /* Primary palette — Navy Blue */
     --primary: #1B2A5B;
     --primary-light: #2C4080;
     --primary-dark: #111D40;
     --primary-glow: rgba(27, 42, 91, 0.35);
 
-    /* Accent — UCC Gold / success / warning / error */
+    /* Accent — Gold / success / warning / error */
     --accent: #D4A843;
     --accent-light: #E0BB60;
     --success: #10B981;

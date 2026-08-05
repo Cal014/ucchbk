@@ -78,7 +78,7 @@ const AdminDashboard = {
                             </div>
                             <div class="form-group">
                                 <label for="doc-email">Email *</label>
-                                <input type="email" id="doc-email" placeholder="doctor@ucc.edu.gh" required>
+                                <input type="email" id="doc-email" placeholder="doctor@hospital.com" required>
                             </div>
                         </div>
                         <div class="form-row">

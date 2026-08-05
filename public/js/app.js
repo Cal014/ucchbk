@@ -1,5 +1,5 @@
 /* ============================================
-   UCC Hospital — Main App (Router, Auth, API)
+   Hospital Appointment System — Main App (Router, Auth, API)
    ============================================ */
 
 const App = {

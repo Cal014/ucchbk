@@ -9,10 +9,10 @@ const RegisterPage = {
                 <div class="auth-header">
                     <div class="logo" style="position:relative;">
                         <div style="position:absolute;inset:-12px;border-radius:50%;background:radial-gradient(circle,rgba(212,168,67,0.15),transparent 70%);"></div>
-                        <img src="/images/ucc-logo.png" alt="UCC Logo" style="width:72px;height:72px;object-fit:contain;position:relative;">
+                        <img src="/images/hospital-logo.png" alt="Hospital Logo" style="width:72px;height:72px;object-fit:contain;position:relative;">
                     </div>
                     <h1>Create Account</h1>
-                    <p>Join UCC Hospital Booking Platform</p>
+                    <p>Join Hospital Appointment System</p>
                 </div>
                 <form id="register-form">
                     <input type="hidden" id="reg-role" value="patient">

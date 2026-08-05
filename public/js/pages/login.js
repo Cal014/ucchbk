@@ -9,10 +9,10 @@ const LoginPage = {
                 <div class="auth-header">
                     <div class="logo" style="position:relative;">
                         <div style="position:absolute;inset:-12px;border-radius:50%;background:radial-gradient(circle,rgba(212,168,67,0.15),transparent 70%);"></div>
-                        <img src="/images/ucc-logo.png" alt="UCC Logo" style="width:88px;height:88px;object-fit:contain;position:relative;">
+                        <img src="/images/hospital-logo.png" alt="Hospital Logo" style="width:88px;height:88px;object-fit:contain;position:relative;">
                     </div>
-                    <h1>UCC Hospital</h1>
-                    <p>Booking Platform</p>
+                    <h1>Hospital Appointment System</h1>
+                    <p>Book & Manage Your Appointments</p>
                 </div>
                 <form id="login-form">
                     <div class="form-group">

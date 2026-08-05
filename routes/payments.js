@@ -13,6 +13,33 @@ function generateTransactionRef(method) {
     return `${prefix}-${timestamp}-${random}`;
 }
 
+function luhnCheck(cardNumber) {
+    const digits = cardNumber.replace(/\D/g, '');
+    if (digits.length < 13 || digits.length > 19) return false;
+    let sum = 0;
+    let shouldDouble = false;
+    for (let i = digits.length - 1; i >= 0; i--) {
+        let digit = parseInt(digits.charAt(i), 10);
+        if (shouldDouble) {
+            digit *= 2;
+            if (digit > 9) digit -= 9;
+        }
+        sum += digit;
+        shouldDouble = !shouldDouble;
+    }
+    return (sum % 10) === 0;
+}
+
+function isValidExpiry(expiry) {
+    if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(expiry)) return false;
+    const [month, year] = expiry.split('/');
+    const expiryDate = new Date(`20${year}`, parseInt(month) - 1, 1);
+    const currentDate = new Date();
+    currentDate.setDate(1); // Compare only year and month
+    currentDate.setHours(0,0,0,0);
+    return expiryDate >= currentDate;
+}
+
 // POST /api/payments
 router.post('/', authenticate, authorize('patient'), async (req, res) => {
     try {
@@ -27,8 +54,19 @@ router.post('/', authenticate, authorize('patient'), async (req, res) => {
         if (['mtn_momo', 'telecel_cash', 'airteltigo_money'].includes(payment_method) && !phone_number) {
             return res.status(400).json({ error: 'Phone number is required for mobile money payments' });
         }
-        if (payment_method === 'card' && (!card_number || !card_expiry || !card_cvv)) {
-            return res.status(400).json({ error: 'Card number, expiry, and CVV are required' });
+        if (payment_method === 'card') {
+            if (!card_number || !card_expiry || !card_cvv) {
+                return res.status(400).json({ error: 'Card number, expiry, and CVV are required' });
+            }
+            if (!luhnCheck(card_number)) {
+                return res.status(400).json({ error: 'Invalid card number' });
+            }
+            if (!isValidExpiry(card_expiry)) {
+                return res.status(400).json({ error: 'Invalid or expired card' });
+            }
+            if (!/^\d{3,4}$/.test(card_cvv)) {
+                return res.status(400).json({ error: 'Invalid CVV' });
+            }
         }
 
         const db = await getDb();
